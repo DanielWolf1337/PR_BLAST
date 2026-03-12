@@ -1,27 +1,23 @@
 import asyncio
 import logging
-from aiogram import Bot, Dispatcher
-from aiogram.filters import Command
-from aiogram.types import Message
+import os
+from aiogram import Bot, Dispatcher, types
+from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiohttp import web
 
-# ТОКЕН (ТВОЙ НОВЫЙ)
 TOKEN = "8717487273:AAHJyn3ajIW8Xo2khmQu1hyoKFI8sHmsbpY"
 BOT_NAME = "PR BLAST"
 
-# Настройка логирования
 logging.basicConfig(level=logging.INFO)
 
-# Создаем бота
 bot = Bot(token=TOKEN)
-dp = Dispatcher()
+dp = Dispatcher(bot)
+dp.middleware.setup(LoggingMiddleware())
 
-# Команда start
-@dp.message(Command("start"))
-async def cmd_start(message: Message):
-    await message.answer("✅ Бот работает! ID: " + str(message.from_user.id))
+@dp.message_handler(commands=['start'])
+async def cmd_start(message: types.Message):
+    await message.reply("✅ Бот работает! Твой ID: " + str(message.from_user.id))
 
-# Веб-сервер для Render
 async def web_server():
     app = web.Application()
     app.router.add_get('/', lambda r: web.Response(text=f"{BOT_NAME} is running!"))
@@ -32,11 +28,13 @@ async def web_server():
     await site.start()
     print(f"✅ Веб-сервер на порту {port}")
 
-# Главная функция
 async def main():
     print(f"🚀 {BOT_NAME} запуск...")
+    print(f"✅ Токен загружен: {TOKEN[:10]}...")
     asyncio.create_task(web_server())
-    await dp.start_polling(bot)
+    await dp.start_polling()
 
+if __name__ == "__main__":
+    asyncio.run(main())
 if __name__ == "__main__":
     asyncio.run(main())
